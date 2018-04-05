@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
 namespace Example.Cache
@@ -10,10 +9,11 @@ namespace Example.Cache
     /// When an item is added to the cache, a check should be run to see if the cache size exceeds the maximum number of elements permitted. 
     /// If this is the case, then the least recently added/updated/retrieved item should be evicted from the cache.
     /// All operations, including cache eviction, must have O(1) time complexity.
+    /// Thread-unsafe
     /// </summary>
     public class LRUCache<TKey, TValue> : ICache<TKey, TValue>
     {
-        //node in double linked List 
+        ///node in double linked List 
         protected internal class LRUCacheNode
         {
             public TKey Key { get; set; }
@@ -24,11 +24,10 @@ namespace Example.Cache
             public LRUCacheNode(){}
         };
 
-        Dictionary<TKey, LRUCacheNode> _dictionary = new Dictionary<TKey, LRUCacheNode>();
+        protected Dictionary<TKey, LRUCacheNode> _dictionary = new Dictionary<TKey, LRUCacheNode>();
         protected LRUCacheNode _head = new LRUCacheNode();
         protected LRUCacheNode _tail = new LRUCacheNode();
         protected readonly int _capacity = 0; //maximum number of elements permitted
-        private readonly Object _lockThis = new Object();
 
         public LRUCache(int capacity)
         {
@@ -46,7 +45,7 @@ namespace Example.Cache
                 value = _head.Value;
                 return false;
             }
-            else
+            else //Retrieve operation
             {
                 LRUCacheNode node = _dictionary[key];
                 DetachNode(node);
@@ -58,26 +57,19 @@ namespace Example.Cache
 
         virtual public void AddOrUpdate(TKey key, TValue value)
         {
-            lock (_lockThis) 
-            {
-                AddOrUpdateThreadNotSafe(key, value);
-            }
-        }
-
-        protected void AddOrUpdateThreadNotSafe(TKey key, TValue value)
-        {
             if (_dictionary.ContainsKey(key) == false) //key is not in cache
             {
-                if (_dictionary.Count == _capacity) // cache is full
+                if (_dictionary.Count == _capacity) //cache is full, replacement operation
                     RemoveFromTail();
 
-                LRUCacheNode node = new LRUCacheNode();
+                //insert operation
+                LRUCacheNode node = new LRUCacheNode(); 
                 node.Key = key;
                 node.Value = value;
                 _dictionary.Add(key, node);
                 InsertToFront(node);
             }
-            else
+            else //update operation
             {
                 LRUCacheNode node = _dictionary[key];
                 DetachNode(node);
@@ -103,7 +95,7 @@ namespace Example.Cache
         protected void InsertToFront(LRUCacheNode node)
         {
             node.Next = _head.Next;
-            Thread.Sleep(100); //keep this line to make a big change of error due to unsafe multiple threads. todo: delete this line in real applications.
+            Thread.Sleep(100); //keep this line to make a big chance of error due to unsafe multiple threads. todo: delete this line in real applications.
             node.Prev = _head;
             _head.Next = node;
             node.Next.Prev = node;

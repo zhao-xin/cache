@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading;
 using NUnit.Framework;
 
 namespace Example.Cache.Tests
@@ -9,9 +7,21 @@ namespace Example.Cache.Tests
     public class LRUCacheTests
     {
         [Test]
-        public void SingleThreadTest()
+        public void SingleThreadLRUCacheTest()
         {
             ICache<int, char> LRUCache = new LRUCache<int, char>(5);
+            LRULogic(LRUCache);
+        }
+
+        [Test]
+        public void SingleThreadConcurrentLRUTCacheTest()
+        {
+            ICache<int, char> LRUCache = new ConcurrentLRUCache<int, char>(5);
+            LRULogic(LRUCache);
+        }
+
+        private void LRULogic(ICache<int, char> LRUCache)
+        { 
             char value;
             bool result;
             LRUCache.AddOrUpdate(1, 'a');
@@ -35,21 +45,21 @@ namespace Example.Cache.Tests
 
         //should pass
         [Test]
-        public void SafeMultiThreadTest()
+        public void MultiThreadLRUCacheTest()
         {
             ICache<int, char> LRUCache = new LRUCache<int, char>(6);
-            MultiThreadTest(LRUCache);
+            MultiThread(LRUCache);
         }
 
         //should fail
         [Test]
-        public void UnsafeMultiThreadTest()
+        public void MultiThreadConcurrentLRUTCacheTest()
         {
-            ICache<int, char> LRUCache = new LRUCacheThreadNotSafe<int, char>(6);
-            MultiThreadTest(LRUCache);
+            ICache<int, char> LRUCache = new ConcurrentLRUCache<int, char>(6);
+            MultiThread(LRUCache);
         }
 
-        private void MultiThreadTest(ICache<int, char> LRUCache)
+        private void MultiThread(ICache<int, char> LRUCache)
         {
             var thread1 = new Thread(() =>
             {
