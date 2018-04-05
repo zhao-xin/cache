@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="ICache.cs" />
     <Compile Include="LRUCache.cs" />
+    <Compile Include="LRUCacheThreadNotSafe.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
